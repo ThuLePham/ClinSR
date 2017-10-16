@@ -48,46 +48,32 @@ public class ClinSREngine implements RSPEngine {
 
     @Override
     public Stream registerStream(String streamName, String uri) {
-    	ClinSRRDFStream stream = null;
-    	
     	/*
     	 * streamName is name of stream as declared in query
     	 * Ex: from stream <http://lubm.org#universities> [TIME 3s STEP 2s].
 		 * Ex: streamName = http://lubm.org#universities
     	 */
-    	Map<String,WindowInfo> map = this.engine.getRuleSet().getStreamWindowMap();
-    	if(map.keySet().contains(streamName)){
-    		WindowInfo wInfo = map.get(streamName);
-    		stream = new ClinSRRDFStream(streamName);
-    		this.engine.registerStream(stream, wInfo);
-    		
-    	}else{
-
-    		throw new IllegalArgumentException("The stream name is not declared in query!!!");
-    	}
+    	ClinSRRDFStream stream = new ClinSRRDFStream(streamName);
+    	this.engine.registerStream(stream);
 
         return stream;
 
     }
     
-    public Stream registerStream(ClinSRRDFStream stream){
+    
+    public Stream registerStream(ClinSRRDFStream stream) {
+    	/*
+    	 * streamName is name of stream as declared in query
+    	 * Ex: from stream <http://lubm.org#universities> [TIME 3s STEP 2s].
+		 * Ex: streamName = http://lubm.org#universities
+    	 */
     	
-    	Map<String,WindowInfo> map = this.engine.getRuleSet().getStreamWindowMap();
-    	System.out.println(this.engine.getRuleSet().toString());
-    	System.out.println(map.toString());
-    	System.out.println(stream.getId());
-    	if(map.keySet().contains(stream.getId())){
-    		WindowInfo wInfo = map.get(stream.getId());
-    		this.engine.registerStream(stream, wInfo);
-    		
-    	}else{
+    	this.engine.registerStream(stream);
 
-    		throw new IllegalArgumentException("The stream name is not declared in query!!!");
-    	}
+        return stream;
 
-    	
-    	return stream;
     }
+    
     
     public Observer registerResultObserver(Observer o){
     	this.engine.addObserver(o);
@@ -162,7 +148,7 @@ public class ClinSREngine implements RSPEngine {
 	
 	public Query registerQuery(String queryName, String queryBody)  {
 		ClinSRQuery query = new ClinSRQuery(queryName, queryBody);
-		this.engine.registerRuleSet(query.getClinRuleset());
+		this.engine.registerCbQuery(queryName, queryBody);
 		return query;
 	}
 
