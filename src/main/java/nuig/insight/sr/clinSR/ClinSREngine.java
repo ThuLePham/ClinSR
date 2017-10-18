@@ -143,12 +143,15 @@ public class ClinSREngine implements RSPEngine {
 	public Query registerQuery(String queryName, QueryType queryType, String queryBody, List<String> streams,
 			List<String> graphs, String tbox_location, String rule_set) throws Exception {
 		ClinSRQuery query = new ClinSRQuery(queryName, queryBody);
+		this.engine.registerCbQuery(queryName, queryBody);
+		this.engine.addPythonFile("src/main/resources/python_function.py");
 		return query;
 	}
 	
 	public Query registerQuery(String queryName, String queryBody)  {
 		ClinSRQuery query = new ClinSRQuery(queryName, queryBody);
 		this.engine.registerCbQuery(queryName, queryBody);
+		this.engine.addPythonFile("src/main/resources/python_function.py");
 		return query;
 	}
 
