@@ -1,0 +1,15 @@
+#prefix rdf : <http://www.w3.org/1999/02/22-rdf-syntax-ns#>;
+#prefix ex : <http://example.org/>;
+#from stream <http://hotel.org#stream1> [TIME 5s STEP 3s];
+#from stream <http://hotel.org#stream2> [TIME 3s STEP 3s];
+1 { hotel(X):rdf_type(X,\"ex_hotel\")} 1;
+smallStreetHotel(X) :- ex_onStreet(X,Y), (@getStringValue(Y)) = \"SmallStreet\";
+noisyHotel(X) :- hotel(X), not smallStreetHotel(X);
+quiteHotel(X) :- hotel(X), smallStreetHotel(X);
+:- noisyHotel(X);
+#maximize {(@getIntegerValue(Y))@1 : ex_star(X,Y), hotel(X)};
+#minimize {(@getIntegerValue(Y))@2 : ex_cost(X,Y), hotel(X)};
+ex_optHotelStar(X,Y):- hotel(X), ex_star(X,Y);
+ex_optHotelCost(X,Y) :- hotel(X), ex_cost(X,Y);
+#show ex_optHotelStar/2;
+#show ex_optHotelCost/2;

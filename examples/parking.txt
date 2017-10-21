@@ -1,0 +1,37 @@
+#prefix xsd:     <http://www.w3.org/2001/XMLSchema#> ;
+#prefix :   <http://www.insight-centre.org/dataset/SampleEventService#>;
+#prefix ssn : <http://purl.oclc.org/NET/ssnx/ssn#>;
+#prefix sao:     <http://purl.oclc.org/NET/sao/>;
+#prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>; 
+#prefix ct:      <http://www.insight-centre.org/citytraffic#>;
+#prefix prov : <http://www.w3.org/ns/prov#>
+
+
+#from stream <AarhusParkingDataKALKVAERKSVEJ> [TIME 3s STEP 1s] ;
+#from stream <UserLocationService> [TIME 5s STEP 4s];
+#from <dataset/SensorRepository.lp>;
+
+
+parkingLocation(P, Lat, Lon) :- rdf_type(P,"ct_ParkingVacancy"), ssn_isPropertyOf(P,Foi), ct_hasStartLatitude(Foi, Lat), ct_hasStartLongitude(Foi,Lon);
+
+observedParking(ObId, V, Lat, Lon):- ssn_observedProperty(ObId, P), ssn_observedBy(ObId, "_AarhusParkingDataKALKVAERKSVEJ”), sao_hasValue(ObId, V), parkingLocation(P, Lat, Lon);
+
+observedParkingValue(ObId, W) :- observedParking(ObId,V,Lat,Lon), W =@getIntegerValue(V);
+
+observedParkingLocation(ObId,VLat,VLon) :- observedParking(ObId,V,Lat,Lon), VLat = @getIntegerValue(Lat), VLon=@getIntegerValue(Lon);
+
+ 
+observedUser(ObId,Lat, Lon):- sao_hasValue(ObId, V),ct_hasLatitude(V,Lat), ct_hasLongitude(V, Lon), ssn_observedBy(ObId, "_UserLocationService”);
+
+
+userLocation(ObId, VLat, VLon) :- observedUser(ObId,Lat, Lon), VLat= @getIntegerValue(Lat), VLon = @getIntegerValue(Lon);
+
+
+1{selected(ObId) : observedParkingValue(ObId,_)}1;
+
+distance(ObId1,D) :- observedParkingLocation(ObId1,VLat1,VLon1), userLocation(ObId2,VLat2,VLon2), D = (VLat1-VLat2)*(VLat1-VLat2)+(VLon1-VLon2)*(VLon1-VLon2);
+
+#minimize{D@1: distance(ObId,D), selected(ObId)};
+#minimize{W@2: observedParkingValue(ObId, W), selected(ObId)};
+
+#show observedParkingValue/2.
