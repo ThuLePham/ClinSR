@@ -1,22 +1,26 @@
 package nuig.insight.sr.clinSR;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.Observer;
-import java.util.Properties;
-
+import be.ugent.idlab.rspservice.common.configuration.Config;
 import be.ugent.idlab.rspservice.common.enumerations.QueryType;
 import be.ugent.idlab.rspservice.common.exceptions.RuleSetRegistrationException;
 import be.ugent.idlab.rspservice.common.interfaces.Query;
 import be.ugent.idlab.rspservice.common.interfaces.RSPEngine;
 import be.ugent.idlab.rspservice.common.interfaces.RuleSet;
 import be.ugent.idlab.rspservice.common.interfaces.Stream;
-import sr.core.atom_based_reasoner.WindowInfo;
+import org.apache.jena.query.QueryExecution;
+import org.apache.jena.query.QueryExecutionFactory;
+import org.apache.jena.query.QuerySolution;
+import org.apache.jena.query.ResultSet;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
 import sr.core.triple_based_reasoner.TripleClingoReasoner;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.List;
+import java.util.Observer;
+import java.util.Properties;
 
 /**
  * 
@@ -55,7 +59,7 @@ public class ClinSREngine implements RSPEngine {
     	 */
     	ClinSRRDFStream stream = new ClinSRRDFStream(streamName);
     	this.engine.registerStream(stream);
-
+        extractMetadata(uri, stream);
         return stream;
 
     }
@@ -96,7 +100,6 @@ public class ClinSREngine implements RSPEngine {
     public Object getStream(String streamName) {
         return null;
     }
-
 
     @Override
     public Object unregisterQuery(String queryID) {
@@ -142,20 +145,17 @@ public class ClinSREngine implements RSPEngine {
 	@Override
 	public Query registerQuery(String queryName, QueryType queryType, String queryBody, List<String> streams,
 			List<String> graphs, String tbox_location, String rule_set) throws Exception {
-		ClinSRQuery query = new ClinSRQuery(queryName, queryBody);
-		this.engine.registerCbQuery(queryName, queryBody);
-		this.engine.addPythonFile("src/main/resources/python_function.py");
-		return query;
+		return registerQuery(queryBody);
 	}
 	
-	public Query registerQuery(String queryName, String queryBody)  {
-		ClinSRQuery query = new ClinSRQuery(queryName, queryBody);
-		this.engine.registerCbQuery(queryName, queryBody);
-		this.engine.addPythonFile("src/main/resources/python_function.py");
-		return query;
+	public Query registerQuery(String queryBody)  {
+        ClinSRResultObserver handler = new ClinSRResultObserver("Program", this.engine);
+        ClinSRQuery query = new ClinSRQuery("Program", queryBody, handler);
+
+        this.engine.registerCbQuery("Program", queryBody);
+        this.engine.addPythonFile("src/main/resources/python_function.py");
+        return query;
 	}
-
-
 
 	@Override
 	public RuleSet registerRuleSet(String id, String body) throws RuleSetRegistrationException {
@@ -187,4 +187,39 @@ public class ClinSREngine implements RSPEngine {
 		}
     }
 
+
+    private void extractMetadata(String uri, ClinSRRDFStream js) {
+        Model sGraph = ModelFactory.createDefaultModel().read(uri, "JSON-LD");
+        //sGraph.write(System.out);
+
+        QueryExecution qexec = QueryExecutionFactory.create(Config.getInstance().getQuery(), sGraph);
+
+        ResultSet rs = qexec.execSelect();
+
+        String wsUrl = new String();
+        String tBoxUrl = new String();
+        String aBoxUrl = new String();
+
+        while (rs.hasNext()) {
+            QuerySolution qs = rs.next();
+            if (qs.get("wsurl").isLiteral())
+                wsUrl = qs.getLiteral("wsurl").getLexicalForm();
+            else
+                wsUrl = qs.get("wsurl").toString();
+            if (qs.contains("tboxurl"))
+                if (qs.get("tboxurl").isLiteral())
+                    tBoxUrl = qs.getLiteral("tboxurl").getLexicalForm();
+                else
+                    tBoxUrl = qs.get("tboxurl").toString();
+            if (qs.contains("aboxurl"))
+                if (qs.get("aboxurl").isLiteral())
+                    aBoxUrl = qs.getLiteral("aboxurl").getLexicalForm();
+                else
+                    aBoxUrl = qs.get("aboxurl").toString();
+        }
+
+        js.setTBox(tBoxUrl);
+        js.setStaticABox(aBoxUrl);
+        js.setSourceURI(wsUrl);
+    }
 }

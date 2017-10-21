@@ -1,53 +1,42 @@
 package nuig.insight.sr.clinSR;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Set;
-
-import javax.websocket.Session;
-
-import org.apache.jena.graph.Graph;
-import org.apache.jena.graph.NodeFactory;
-import org.apache.jena.rdf.model.AnonId;
-import org.apache.jena.rdf.model.Literal;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdf.model.ResourceFactory;
-import org.apache.jena.rdf.model.Statement;
-import org.apache.jena.rdf.model.StmtIterator;
-import org.apache.jena.rdf.model.impl.ResourceImpl;
-
+import be.ugent.idlab.rspservice.common.enumerations.RSPComponentStatus;
+import be.ugent.idlab.rspservice.common.interfaces.Stream;
 import com.github.jsonldjava.core.JsonLdError;
 import com.github.jsonldjava.core.JsonLdOptions;
 import com.github.jsonldjava.core.JsonLdProcessor;
 import com.github.jsonldjava.core.RDFDataset;
 import com.github.jsonldjava.utils.JsonUtils;
-
-import be.ugent.idlab.rspservice.common.enumerations.RSPComponentStatus;
-import be.ugent.idlab.rspservice.common.interfaces.Stream;
+import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.rdf.model.*;
+import org.apache.jena.rdf.model.impl.ResourceImpl;
 import sr.core.triple_based_reasoner.TimeStampedTriple;
 import sr.core.triple_based_reasoner.Triple;
 import sr.core.triple_based_reasoner.TripleStream;
 
+import javax.websocket.Session;
+import java.io.IOException;
+import java.util.List;
+import java.util.Set;
+
 /**
  * Created by riccardo on 17/08/2017.
  */
-public class ClinSRRDFStream extends TripleStream implements Stream{
+public class ClinSRRDFStream extends TripleStream implements Stream {
 
+    private String wsuri, tbox, abox;
+    private Session session;
 
-	
     public ClinSRRDFStream(String streamId) {
-       super(streamId);
+        super(streamId);
     }
 
     public void feedRDFStream(String dataSerialization) {
         try {
             Model model = deserializizeAsJsonSerialization(dataSerialization, null);
             StmtIterator stmtIterator = model.listStatements();
-  
-			while (stmtIterator.hasNext()) {
+
+            while (stmtIterator.hasNext()) {
                 Statement statement = stmtIterator.nextStatement();
                 Triple triple = new Triple(statement.getSubject().toString(), statement.getPredicate().toString(), statement.getObject().toString());
                 TimeStampedTriple stTriple = new TimeStampedTriple(triple, System.currentTimeMillis());
@@ -59,7 +48,7 @@ public class ClinSRRDFStream extends TripleStream implements Stream{
             jsonLdError.printStackTrace();
         }
     }
-   
+
     private Model deserializizeAsJsonSerialization(String asJsonSerialization, JsonLdOptions options) throws IOException, JsonLdError {
 
         Model model = ModelFactory.createDefaultModel();
@@ -98,36 +87,35 @@ public class ClinSRRDFStream extends TripleStream implements Stream{
         return model;
     }
 
-	public String getStreamID() {
-		return this.id;
-	}
+    public String getStreamID() {
+        return this.id;
+    }
 
-	public Object getStream() {
-		throw new UnsupportedOperationException();
-	}
+    public Object getStream() {
+        throw new UnsupportedOperationException();
+    }
 
-	public RSPComponentStatus getStatus() {
-		throw new UnsupportedOperationException();
-	}
+    public RSPComponentStatus getStatus() {
+        return RSPComponentStatus.RUNNING;
+    }
 
-	public void setTBox(String graph_uri) {
-		throw new UnsupportedOperationException();
-	}
+    public void setTBox(String graph_uri) {
+        this.tbox = graph_uri;
+    }
 
-	public void setStaticABox(String graph_uri) {
-		throw new UnsupportedOperationException();	
-	}
+    public void setStaticABox(String graph_uri) {
+        this.abox = graph_uri;
+    }
 
-	public void setWsSession(Session session) {
-		throw new UnsupportedOperationException();
-	}
+    public void setWsSession(Session session) {
+        this.session = session;
+    }
 
-	public String getSourceURI() {
-		throw new UnsupportedOperationException();	
-	}
+    public String getSourceURI() {
+        return wsuri;
+    }
 
-	public void setSourceURI(String wsUrl) {
-		throw new UnsupportedOperationException();	
-		
-	}
+    public void setSourceURI(String wsUrl) {
+        this.wsuri = wsUrl;
+    }
 }

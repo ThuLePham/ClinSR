@@ -51,11 +51,10 @@ public class HelloWorld_Hotel {
 		
 		
 		//register query (before register stream)
-		reasoner.registerQuery("hotel_query", query);
+		reasoner.registerQuery(query);
 		
 		//register observer to get results
-		reasoner.registerResultObserver(new ClinSRResultObserver());
-		
+
 		
 		//start stream
 		new Thread(stream1).start();

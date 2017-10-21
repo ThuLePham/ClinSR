@@ -45,11 +45,10 @@ public class HelloWorld_Lubm {
 		
 		
 		//register query (before register stream)
-		reasoner.registerQuery("lubm_query", query);
+		reasoner.registerQuery(query);
 		
 		//register observer to get results
-		reasoner.registerResultObserver(new ClinSRResultObserver());
-		
+
 		
 		//start stream
 		new Thread(stream1).start();
