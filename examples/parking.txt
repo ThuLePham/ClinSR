@@ -32,6 +32,6 @@ userLocation(ObId, VLat, VLon) :- observedUser(ObId,Lat, Lon), VLat= @getInteger
 distance(ObId1,D) :- observedParkingLocation(ObId1,VLat1,VLon1), userLocation(ObId2,VLat2,VLon2), D = (VLat1-VLat2)*(VLat1-VLat2)+(VLon1-VLon2)*(VLon1-VLon2);
 
 #minimize{D@1: distance(ObId,D), selected(ObId)};
-#minimize{W@2: observedParkingValue(ObId, W), selected(ObId)};
+#maximize{W@2: observedParkingValue(ObId, W), selected(ObId)};
 
 #show observedParkingValue/2.

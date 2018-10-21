@@ -37,6 +37,11 @@ public class ClinSREngine implements RSPEngine {
         this.engine = new TripleClingoReasoner(false);
         this.engine.setClingoUri(getClingoURI());
     }
+    
+    public ClinSREngine(boolean parallel) {
+        this.engine = new TripleClingoReasoner(parallel);
+        this.engine.setClingoUri(getClingoURI());
+    }
 
 
     @Override
@@ -150,6 +155,7 @@ public class ClinSREngine implements RSPEngine {
 	
 	public Query registerQuery(String queryBody)  {
         ClinSRResultObserver handler = new ClinSRResultObserver("Program", this.engine);
+//        System.out.println("Program = " + queryBody);
         ClinSRQuery query = new ClinSRQuery("Program", queryBody, handler);
 
         this.engine.registerCbQuery("Program", queryBody);

@@ -39,7 +39,7 @@ public class ClinSRResultObserver extends AbstractQueryResultProxy {
             ByteArrayOutputStream os = new ByteArrayOutputStream();
             Model defaultModel = ModelFactory.createDefaultModel();
             for (Object ob : (Set) arg) {
-                System.out.println("Answer set  has " + ((Set) ob).size() + " triples at " + System.currentTimeMillis());
+//                System.out.println("Answer set  has " + ((Set) ob).size() + " triples at " + System.currentTimeMillis());
                 for (Object temp : (Set) ob) {
                     Triple t = ((TimeStampedTriple) temp).getTriple();
                     defaultModel.add(createStatement(t));
